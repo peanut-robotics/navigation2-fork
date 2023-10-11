@@ -412,19 +412,52 @@ StaticLayer::updateCosts(
     tf2::Transform tf2_transform;
     tf2::fromMsg(transform.transform, tf2_transform);
 
-    for (int i = min_i; i < max_i; ++i) {
-      for (int j = min_j; j < max_j; ++j) {
-        // Convert master_grid coordinates (i,j) into global_frame_(wx,wy) coordinates
-        layered_costmap_->getCostmap()->mapToWorld(i, j, wx, wy);
-        // Transform from global_frame_ to map_frame_
-        tf2::Vector3 p(wx, wy, 0);
-        p = tf2_transform * p;
-        // Set master_grid with cell from map
-        if (worldToMap(p.x(), p.y(), mx, my)) {
-          if (!use_maximum_) {
-            master_grid.setCost(i, j, getCost(mx, my));
-          } else {
-            master_grid.setCost(i, j, std::max(getCost(mx, my), master_grid.getCost(i, j)));
+    if (resolution_ >= layered_costmap_->getCostmap()->getResolution()) {
+      // master_grid is higher or equal res compared to map
+      // iterate over master grid cells
+      for (int i = min_i; i < max_i; ++i) {
+        for (int j = min_j; j < max_j; ++j) {
+          // Convert master_grid coordinates (i,j) into global_frame_(wx,wy) coordinates
+          layered_costmap_->getCostmap()->mapToWorld(i, j, wx, wy);
+          // Transform from global_frame_ to map_frame_
+          tf2::Vector3 p(wx, wy, 0);
+          p = tf2_transform * p;
+          // Set master_grid with cell from map
+          if (worldToMap(p.x(), p.y(), mx, my)) {
+            if (!use_maximum_) {
+              master_grid.setCost(i, j, getCost(mx, my));
+            } else {
+              master_grid.setCost(i, j, std::max(getCost(mx, my), master_grid.getCost(i, j)));
+            }
+          }
+        }
+      }
+    }
+    else {
+      // master_grid is lower res compared to map
+      // need to iterate over map cells
+      double wmin_x, wmin_y;
+      double wmax_x, wmax_y;
+      layered_costmap_->getCostmap()->mapToWorld(min_i, min_j, wmin_x, wmin_y);
+      layered_costmap_->getCostmap()->mapToWorld(max_i, max_j, wmax_x, wmax_y);
+      unsigned int local_min_i, local_min_j;
+      unsigned int local_max_i, local_max_j;
+      worldToMap(wmin_x, wmin_y, local_min_i, local_min_j);
+      worldToMap(wmax_x, wmax_y, local_max_i, local_max_j);
+      min_i = static_cast<int>(local_min_i);
+      max_i = static_cast<int>(local_max_i);
+      min_j = static_cast<int>(local_min_j);
+      max_j = static_cast<int>(local_max_j);
+      for (int i = min_i; i < max_i; ++i) {
+        for (int j = min_j; j < max_j; ++j) {
+          // Convert map coordinates (i,j) into global_frame_(wx,wy) coordinates
+          mapToWorld(i, j, wx, wy);
+          // Transform from global_frame_ to map_frame_
+          tf2::Vector3 p(wx, wy, 0);
+          p = tf2_transform * p;
+          // Set master_grid with cell from map
+          if (master_grid.worldToMap(p.x(), p.y(), mx, my)) {
+              master_grid.setCost(mx, my, std::max(master_grid.getCost(mx, my), getCost(i, j)));
           }
         }
       }
