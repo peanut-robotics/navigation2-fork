@@ -124,9 +124,16 @@ void ObstaclesCritic::score(CriticData & data)
   }
   auto t1 = parent->now();
   auto dt = (t1 - t0).seconds();
-  static double fcc_dt = 0.05;
+  static double fcc_max_dt = 0.000;
+  static double fcc_dt = 0.005;
+  fcc_max_dt = std::max(fcc_max_dt, dt);
   fcc_dt = 0.9 * fcc_dt + 0.1 * dt;
-  RCLCPP_WARN_THROTTLE(logger_, *(parent->get_clock()), 500, "findCircumscribedCost took %f ms (%f)", 1000.0*dt, 1000.0*fcc_dt);
+  RCLCPP_WARN_THROTTLE(logger_, *(parent->get_clock()), 500, "findCircumscribedCost took %f ms avg: %f max: %f", 1000.0*dt, 1000.0*fcc_dt, 1000.0*fcc_max_dt);
+
+  static int num_calls = 0;
+  num_calls++;
+  RCLCPP_WARN_THROTTLE(logger_, *(parent->get_clock()), 500, "score calls: %d", num_calls);
+
 
   // If near the goal, don't apply the preferential term since the goal is near obstacles
   bool near_goal = false;
@@ -183,9 +190,11 @@ void ObstaclesCritic::score(CriticData & data)
 
   auto t2 = parent->now();
   dt = (t2 - t0).seconds();
-  static double score_dt = 0.05;
+  static double score_dt = 0.005;
+  static double max_score_dt = 0.0;
+  max_score_dt = std::max(max_score_dt, dt);
   score_dt = 0.9 * score_dt + 0.1 * dt;
-  RCLCPP_WARN_THROTTLE(logger_, *(parent->get_clock()), 500, "score took %f ms (%f)", 1000.0*dt, 1000.0*score_dt);
+  RCLCPP_WARN_THROTTLE(logger_, *(parent->get_clock()), 500, "score took %f ms avg: %f max: %f", 1000.0*dt, 1000.0*score_dt, 1000.0*max_score_dt);
 }
 
 /**
