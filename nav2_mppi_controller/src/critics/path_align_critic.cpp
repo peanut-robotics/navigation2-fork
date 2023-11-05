@@ -127,6 +127,9 @@ void PathAlignCritic::score(CriticData & data)
     if (num_samples > 0) {
       cost[t] = summed_path_dist / num_samples;
     }
+    else {
+      cost[t] = 10.0; // large invalid cost
+    }
   }
 
   data.costs += xt::pow(std::move(cost) * weight_, power_);
