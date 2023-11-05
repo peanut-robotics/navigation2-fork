@@ -55,6 +55,13 @@ float ObstaclesCritic::findCircumscribedCost(
 {
   double result = -1.0;
   bool inflation_layer_found = false;
+
+  const double circum_radius = costmap->getLayeredCostmap()->getCircumscribedRadius();
+  if (static_cast<float>(circum_radius) == circumscribed_radius_) {
+    // early return if footprint size is unchanged
+    return circumscribed_cost_;
+  }
+
   // check if the costmap has an inflation layer
   for (auto layer = costmap->getLayeredCostmap()->getPlugins()->begin();
     layer != costmap->getLayeredCostmap()->getPlugins()->end();
@@ -66,7 +73,6 @@ float ObstaclesCritic::findCircumscribedCost(
     }
 
     inflation_layer_found = true;
-    const double circum_radius = costmap->getLayeredCostmap()->getCircumscribedRadius();
     const double resolution = costmap->getCostmap()->getResolution();
     result = inflation_layer->computeCost(circum_radius / resolution);
     inflation_scale_factor_ = static_cast<float>(inflation_layer->getCostScalingFactor());
@@ -83,7 +89,10 @@ float ObstaclesCritic::findCircumscribedCost(
       "significantly slow down planning times and not avoid anything but absolute collisions!");
   }
 
-  return static_cast<float>(result);
+  circumscribed_radius_ = static_cast<float>(circum_radius);
+  circumscribed_cost_ = static_cast<float>(result);
+
+  return circumscribed_cost_;
 }
 
 float ObstaclesCritic::distanceToObstacle(const CollisionCost & cost)
@@ -107,6 +116,17 @@ void ObstaclesCritic::score(CriticData & data)
   if (!enabled_) {
     return;
   }
+  auto parent = parent_.lock();
+  auto t0 = parent->now(); // xx!!
+  if (consider_footprint_) {
+    // footprint has almost certainly changed since initialize()
+    possibly_inscribed_cost_ = findCircumscribedCost(costmap_ros_);
+  }
+  auto t1 = parent->now();
+  auto dt = (t1 - t0).seconds();
+  static double fcc_dt = 0.05;
+  fcc_dt = 0.9 * fcc_dt + 0.1 * dt;
+  RCLCPP_WARN_THROTTLE(logger_, *(parent->get_clock()), 500, "findCircumscribedCost took %f ms (%f)", 1000.0*dt, 1000.0*fcc_dt);
 
   // If near the goal, don't apply the preferential term since the goal is near obstacles
   bool near_goal = false;
@@ -160,6 +180,12 @@ void ObstaclesCritic::score(CriticData & data)
     (repulsion_weight_ * repulsive_cost / traj_len),
     power_);
   data.fail_flag = all_trajectories_collide;
+
+  auto t2 = parent->now();
+  dt = (t2 - t0).seconds();
+  static double score_dt = 0.05;
+  score_dt = 0.9 * score_dt + 0.1 * dt;
+  RCLCPP_WARN_THROTTLE(logger_, *(parent->get_clock()), 500, "score took %f ms (%f)", 1000.0*dt, 1000.0*score_dt);
 }
 
 /**
