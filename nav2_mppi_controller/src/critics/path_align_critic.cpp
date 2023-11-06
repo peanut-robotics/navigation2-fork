@@ -128,7 +128,7 @@ void PathAlignCritic::score(CriticData & data)
       cost[t] = summed_path_dist / num_samples;
     }
     else {
-      cost[t] = 10.0; // large invalid cost
+      cost[t] = 0.0;
     }
   }
 
