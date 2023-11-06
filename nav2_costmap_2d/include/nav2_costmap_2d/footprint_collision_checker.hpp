@@ -21,6 +21,7 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <unordered_map>
 
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
@@ -79,9 +80,26 @@ public:
   {
     return costmap_;
   }
+  /**
+  * @brief completely clear the costmap result cache
+  */
+  void clearCache();
+
+  struct TupleHash {
+    std::size_t operator()(const std::tuple<int, int, int, int>& k) const {
+        std::size_t h1 = std::hash<int>{}(std::get<0>(k));
+        std::size_t h2 = std::hash<int>{}(std::get<1>(k));
+        std::size_t h3 = std::hash<int>{}(std::get<2>(k));
+        std::size_t h4 = std::hash<int>{}(std::get<3>(k));
+        return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3);
+    }
+  };
 
 protected:
   CostmapT costmap_;
+  mutable std::unordered_map<std::tuple<int, int, int, int>, double, TupleHash> line_cache_;
+  mutable unsigned int cache_hits_;
+  mutable unsigned int cache_misses_;
 };
 
 }  // namespace nav2_costmap_2d

@@ -85,16 +85,37 @@ double FootprintCollisionChecker<CostmapT>::footprintCost(const Footprint footpr
 }
 
 template<typename CostmapT>
+void FootprintCollisionChecker<CostmapT>::clearCache() {
+
+  float percent = 100.f * static_cast<float>(cache_hits_) / static_cast<float>(cache_hits_ + cache_misses_);
+  RCLCPP_WARN(rclcpp::get_logger("footprint_collision"), "XXX hits: %d misses: %d (%f)", cache_hits_, cache_misses_, percent);
+  line_cache_.clear();
+  cache_hits_ = 0;
+  cache_misses_ = 0;
+}
+
+template<typename CostmapT>
 double FootprintCollisionChecker<CostmapT>::lineCost(int x0, int x1, int y0, int y1) const
 {
   double line_cost = 0.0;
   double point_cost = -1.0;
+
+  std::tuple<int, int, int, int> key(x0, x1, y0, y1);
+  auto iter = line_cache_.end(); // xx!! line_cache_.find(key);
+  if (iter != line_cache_.end()) {
+    cache_hits_++;
+    return iter->second;
+  }
+  else {
+    cache_misses_++;
+  }
 
   for (nav2_util::LineIterator line(x0, y0, x1, y1); line.isValid(); line.advance()) {
     point_cost = pointCost(line.getX(), line.getY());   // Score the current point
 
     // if in collision, no need to continue
     if (point_cost == static_cast<double>(LETHAL_OBSTACLE)) {
+       // line_cache_[key] = point_cost;
       return point_cost;
     }
 
@@ -103,6 +124,7 @@ double FootprintCollisionChecker<CostmapT>::lineCost(int x0, int x1, int y0, int
     }
   }
 
+  // line_cache_[key] = line_cost;
   return line_cost;
 }
 
