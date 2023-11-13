@@ -84,22 +84,17 @@ public:
   * @brief completely clear the costmap result cache
   */
   void clearCache();
-
-  struct TupleHash {
-    std::size_t operator()(const std::tuple<int, int, int, int>& k) const {
-        std::size_t h1 = std::hash<int>{}(std::get<0>(k));
-        std::size_t h2 = std::hash<int>{}(std::get<1>(k));
-        std::size_t h3 = std::hash<int>{}(std::get<2>(k));
-        std::size_t h4 = std::hash<int>{}(std::get<3>(k));
-        return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3);
-    }
-  };
+  unsigned int fskipped;
+  unsigned int lskipped;
 
 protected:
   CostmapT costmap_;
-  mutable std::unordered_map<std::tuple<int, int, int, int>, double, TupleHash> line_cache_;
-  mutable unsigned int cache_hits_;
-  mutable unsigned int cache_misses_;
+  mutable std::map<std::tuple<int, int, int, int>, double> line_cache_;
+  mutable unsigned int lcache_hits_;
+  mutable unsigned int lcache_misses_;
+  mutable std::map<std::vector<std::pair<unsigned int, unsigned int>>, double> footprint_cache_;
+  mutable unsigned int fcache_hits_;
+  mutable unsigned int fcache_misses_;
 };
 
 }  // namespace nav2_costmap_2d

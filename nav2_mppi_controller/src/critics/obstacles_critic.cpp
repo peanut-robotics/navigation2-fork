@@ -234,6 +234,10 @@ CollisionCost ObstaclesCritic::costAtPose(float x, float y, float theta)
         x, y, theta, costmap_ros_->getRobotFootprint()));
     collision_cost.using_footprint = true;
   }
+  else {
+    collision_checker_.fskipped++;
+    collision_checker_.lskipped += costmap_ros_->getRobotFootprint().size();
+  }
 
   return collision_cost;
 }
