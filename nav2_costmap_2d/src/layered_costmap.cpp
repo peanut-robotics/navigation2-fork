@@ -134,8 +134,13 @@ void LayeredCostmap::updateMap(double robot_x, double robot_y, double robot_yaw)
 {
   // Lock for the remainder of this function, some plugins (e.g. VoxelLayer)
   // implement thread unsafe updateBounds() functions.
+  // auto start_lock = std::chrono::system_clock::now();
   std::unique_lock<Costmap2D::mutex_t> lock(*(combined_costmap_.getMutex()));
-
+  // auto end_lock = std::chrono::system_clock::now();
+  // auto duration_lock = std::chrono::duration_cast<std::chrono::milliseconds>(end_lock - start_lock).count();
+  // RCLCPP_INFO(
+  //   rclcpp::get_logger("nav2_costmap_2d"),
+  //   "getCostmap lock execution time: %ld [ms]", duration_lock);
   // if we're using a rolling buffer costmap...
   // we need to update the origin using the robot's position
   if (rolling_window_) {
@@ -165,7 +170,16 @@ void LayeredCostmap::updateMap(double robot_x, double robot_y, double robot_yaw)
     double prev_miny = miny_;
     double prev_maxx = maxx_;
     double prev_maxy = maxy_;
+    auto start = std::chrono::system_clock::now();
     (*plugin)->updateBounds(robot_x, robot_y, robot_yaw, &minx_, &miny_, &maxx_, &maxy_);
+    auto end = std::chrono::system_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    auto plugin_name = (*plugin)->getName();
+    if (plugin_name == "temporal_obstacle_layer") {
+      RCLCPP_INFO(
+        rclcpp::get_logger("nav2_costmap_2d"),
+        "Plugin %s updateBounds execution time: %ld [ms]", plugin_name.c_str(), duration);
+    }
     if (minx_ > prev_minx || miny_ > prev_miny || maxx_ < prev_maxx || maxy_ < prev_maxy) {
       RCLCPP_WARN(
         rclcpp::get_logger(

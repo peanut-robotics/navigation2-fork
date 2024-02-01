@@ -31,6 +31,8 @@ using namespace std::chrono_literals;
 using rcl_interfaces::msg::ParameterType;
 using std::placeholders::_1;
 
+#define PROFILING
+
 namespace nav2_controller
 {
 
@@ -469,9 +471,25 @@ void ControllerServer::computeControl()
         r.sleep();
       }
 
+      // #ifdef PROFILING
+      //   auto start_global_path = std::chrono::system_clock::now();
+      // #endif
       updateGlobalPath();
+      // #ifdef PROFILING
+      //   auto end_global_path_ = std::chrono::system_clock::now();
+      //   auto duration_global_path = std::chrono::duration_cast<std::chrono::milliseconds>(end_global_path_ - start_global_path).count();
+      //   RCLCPP_INFO(get_logger(), "updateGlobalPath execution time: %ld [ms]", duration_global_path);
+      // #endif
 
+      #ifdef PROFILING
+        auto start_compute_vel = std::chrono::system_clock::now();
+      #endif
       computeAndPublishVelocity();
+      #ifdef PROFILING
+        auto end_compute_vel = std::chrono::system_clock::now();
+        auto duration_compute_vel = std::chrono::duration_cast<std::chrono::milliseconds>(end_compute_vel - start_compute_vel).count();
+        RCLCPP_INFO(get_logger(), "computeAndPublishVelocity execution time: %ld [ms]", duration_compute_vel);
+      #endif
 
       if (isGoalReached()) {
         RCLCPP_INFO(get_logger(), "Reached the goal!");
