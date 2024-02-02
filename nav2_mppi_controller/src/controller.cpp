@@ -17,7 +17,7 @@
 #include "nav2_mppi_controller/controller.hpp"
 #include "nav2_mppi_controller/tools/utils.hpp"
 
-#define BENCHMARK_TESTING
+// #define BENCHMARK_TESTING
 
 namespace nav2_mppi_controller
 {
@@ -86,9 +86,9 @@ geometry_msgs::msg::TwistStamped MPPIController::computeVelocityCommands(
   std::lock_guard<std::mutex> param_lock(*parameters_handler_->getLock());
   nav_msgs::msg::Path transformed_plan = path_handler_.transformPath(robot_pose);
 
-#ifdef BENCHMARK_TESTING
-  auto start_costmap = std::chrono::system_clock::now();
-#endif
+// #ifdef BENCHMARK_TESTING
+//   auto start_costmap = std::chrono::system_clock::now();
+// #endif
 
 // #ifdef BENCHMARK_TESTING
 //   auto start_costmap_read = std::chrono::system_clock::now();
@@ -100,21 +100,21 @@ geometry_msgs::msg::TwistStamped MPPIController::computeVelocityCommands(
 //   RCLCPP_INFO(logger_, "getCostmap read execution time: %ld [ms]", duration_costmap_read);
 // #endif
 
-#ifdef BENCHMARK_TESTING
-  auto start_costmap_lock = std::chrono::system_clock::now();
-#endif
+// #ifdef BENCHMARK_TESTING
+//   auto start_costmap_lock = std::chrono::system_clock::now();
+// #endif
   std::unique_lock<nav2_costmap_2d::Costmap2D::mutex_t> costmap_lock(*(costmap->getMutex()));
-#ifdef BENCHMARK_TESTING
-  auto end_costmap_lock = std::chrono::system_clock::now();
-  auto duration_costmap_lock = std::chrono::duration_cast<std::chrono::milliseconds>(end_costmap_lock - start_costmap_lock).count();
-  RCLCPP_INFO(logger_, "getCostmap lock execution time: %ld [ms]", duration_costmap_lock);
-#endif
+// #ifdef BENCHMARK_TESTING
+//   auto end_costmap_lock = std::chrono::system_clock::now();
+//   auto duration_costmap_lock = std::chrono::duration_cast<std::chrono::milliseconds>(end_costmap_lock - start_costmap_lock).count();
+//   RCLCPP_INFO(logger_, "getCostmap lock execution time: %ld [ms]", duration_costmap_lock);
+// #endif
 
-#ifdef BENCHMARK_TESTING
-  auto end_costmap = std::chrono::system_clock::now();
-  auto duration_costmap = std::chrono::duration_cast<std::chrono::milliseconds>(end_costmap - start_costmap).count();
-  RCLCPP_INFO(logger_, "getCostmap execution time: %ld [ms]", duration_costmap);
-#endif
+// #ifdef BENCHMARK_TESTING
+//   auto end_costmap = std::chrono::system_clock::now();
+//   auto duration_costmap = std::chrono::duration_cast<std::chrono::milliseconds>(end_costmap - start_costmap).count();
+//   RCLCPP_INFO(logger_, "getCostmap execution time: %ld [ms]", duration_costmap);
+// #endif
 
 // #ifdef BENCHMARK_TESTING
 //   auto start_eval_control = std::chrono::system_clock::now();
