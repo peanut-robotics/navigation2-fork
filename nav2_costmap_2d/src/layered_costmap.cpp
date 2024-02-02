@@ -176,7 +176,7 @@ void LayeredCostmap::updateMap(double robot_x, double robot_y, double robot_yaw)
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     auto plugin_name = (*plugin)->getName();
     if (plugin_name == "temporal_obstacle_layer") {
-      RCLCPP_INFO(
+      RCLCPP_DEBUG(
         rclcpp::get_logger("nav2_costmap_2d"),
         "Plugin %s updateBounds execution time: %ld [ms]", plugin_name.c_str(), duration);
     }
