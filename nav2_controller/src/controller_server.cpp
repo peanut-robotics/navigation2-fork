@@ -31,7 +31,7 @@ using namespace std::chrono_literals;
 using rcl_interfaces::msg::ParameterType;
 using std::placeholders::_1;
 
-#define PROFILING
+// #define PROFILING
 
 namespace nav2_controller
 {
