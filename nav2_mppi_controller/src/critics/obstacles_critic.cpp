@@ -108,6 +108,16 @@ void ObstaclesCritic::score(CriticData & data)
     return;
   }
 
+  // TODO don't need to check this every time
+  // but MUST check it after the footprint has changed
+  auto old_cost = possibly_inscribed_cost_;
+  possibly_inscribed_cost_ = findCircumscribedCost(costmap_ros_);
+  if (old_cost != possibly_inscribed_cost_) {
+    RCLCPP_WARN(
+      logger_,
+      "Updating possibly inscribed cost %f -> %f", old_cost, possibly_inscribed_cost_);
+  }
+
   // If near the goal, don't apply the preferential term since the goal is near obstacles
   bool near_goal = false;
   if (utils::withinPositionGoalTolerance(near_goal_distance_, data.state.pose.pose, data.path)) {
