@@ -108,14 +108,9 @@ void ObstaclesCritic::score(CriticData & data)
     return;
   }
 
-  // TODO don't need to check this every time
-  // but MUST check it after the footprint has changed
-  auto old_cost = possibly_inscribed_cost_;
-  possibly_inscribed_cost_ = findCircumscribedCost(costmap_ros_);
-  if (old_cost != possibly_inscribed_cost_) {
-    RCLCPP_WARN(
-      logger_,
-      "Updating possibly inscribed cost %f -> %f", old_cost, possibly_inscribed_cost_);
+  if (consider_footprint_) {
+    // footprint may have changed since initialization if user has dynamic footprints
+    possibly_inscribed_cost_ = findCircumscribedCost(costmap_ros_);
   }
 
   // If near the goal, don't apply the preferential term since the goal is near obstacles
