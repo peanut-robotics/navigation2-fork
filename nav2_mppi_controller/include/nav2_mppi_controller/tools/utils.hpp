@@ -126,7 +126,7 @@ inline visualization_msgs::msg::Marker createMarker(
   marker.header.stamp = rclcpp::Time(0, 0);
   marker.ns = ns;
   marker.id = id;
-  marker.type = Marker::SPHERE;
+  marker.type = Marker::CUBE; // fewer polygons than sphere
   marker.action = Marker::ADD;
 
   marker.pose = pose;

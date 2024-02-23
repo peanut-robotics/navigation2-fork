@@ -29,6 +29,10 @@
       <description>mppi critic for driving towards the goal that is furthest among trajectories nearest path points</description>
     </class>
 
+    <class type="mppi::critics::PreferRightCritic" base_class_type="mppi::critics::CriticFunction">
+      <description>mppi critic for driving on right side of path</description>
+    </class>
+
     <class type="mppi::critics::PreferForwardCritic" base_class_type="mppi::critics::CriticFunction">
       <description></description>
     </class>

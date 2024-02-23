@@ -91,7 +91,7 @@ void TrajectoryVisualizer::add(
   points_->markers.reserve(floor(shape[0] / trajectory_step_) * floor(shape[1] * time_step_));
 
   for (size_t i = 0; i < shape[0]; i += trajectory_step_) {
-    for (size_t j = 0; j < shape[1]; j += time_step_) {
+    for (int j = shape[1]-1; j >= 0; j -= time_step_) { // always include endpoint
       const float j_flt = static_cast<float>(j);
       float blue_component = 1.0f - j_flt / shape_1;
       float green_component = j_flt / shape_1;
