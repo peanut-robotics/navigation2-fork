@@ -30,6 +30,7 @@ void PreferRightCritic::initialize()
   getParam(offset_from_furthest_, "offset_from_furthest", 6);
   getParam(power_, "cost_power", 1);
   getParam(weight_, "cost_weight", 5.0);
+  getParam(radius_, "radius", 0.26);
 }
 
 void PreferRightCritic::score(CriticData & data)
@@ -57,8 +58,8 @@ void PreferRightCritic::score(CriticData & data)
     }
   }
 
-  RCLCPP_INFO(
-    logger_, "PreferRightCritic testing %ld of %ld", offseted_idx, path_size);
+  // RCLCPP_INFO(
+  //   logger_, "PreferRightCritic testing %ld of %ld", offseted_idx, path_size);
 
   const auto x0 = data.path.x(0);
   const auto y0 = data.path.y(0);
@@ -69,9 +70,9 @@ void PreferRightCritic::score(CriticData & data)
   const auto path_x = data.path.x(offseted_idx);
   const auto path_y = data.path.y(offseted_idx);
 
-  RCLCPP_INFO(
-    logger_, "PreferRightCritic %f, %f -> [%f, %f] -> %f, %f",
-    x0, y0, path_x, path_y, xf, yf);
+  // RCLCPP_INFO(
+  //  logger_, "PreferRightCritic %f, %f -> [%f, %f] -> %f, %f",
+  //  x0, y0, path_x, path_y, xf, yf);
 
   const auto path_yaw = data.path.yaws(offseted_idx);
   const auto left_dx = -sin(path_yaw);
@@ -80,9 +81,15 @@ void PreferRightCritic::score(CriticData & data)
   const auto last_x = xt::view(data.trajectories.x, xt::all(), -1);
   const auto last_y = xt::view(data.trajectories.y, xt::all(), -1);
 
-  auto adjustment = xt::eval((last_x - path_x) * left_dx + (last_y - path_y) * left_dy);
+  auto adjustment = xt::eval(radius_ + (last_x - path_x) * left_dx + (last_y - path_y) * left_dy);
+  adjustment = xt::minimum(adjustment, 2.0*radius_);
+  adjustment = xt::maximum(adjustment, 0.0);
 
-  data.costs += xt::pow(weight_ * std::move(adjustment), power_);
+  auto costs = xt::eval(adjustment);
+
+  // RCLCPP_INFO(logger_, "PreferRightCritic %f, %f", xt::amin(costs)(), xt::amax(costs)());
+
+  data.costs += xt::pow(weight_ * std::move(costs), power_);
 }
 
 }  // namespace mppi::critics

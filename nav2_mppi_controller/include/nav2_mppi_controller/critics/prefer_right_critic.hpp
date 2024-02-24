@@ -53,6 +53,8 @@ protected:
 
   unsigned int power_{0};
   float weight_{0};
+
+  float radius_{0};
 };
 
 }  // namespace mppi::critics
