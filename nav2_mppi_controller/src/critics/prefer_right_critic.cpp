@@ -61,11 +61,11 @@ void PreferRightCritic::score(CriticData & data)
   // RCLCPP_INFO(
   //   logger_, "PreferRightCritic testing %ld of %ld", offseted_idx, path_size);
 
-  const auto x0 = data.path.x(0);
-  const auto y0 = data.path.y(0);
+  // const auto x0 = data.path.x(0);
+  // const auto y0 = data.path.y(0);
 
-  const auto xf = data.path.x(path_size-1);
-  const auto yf = data.path.y(path_size-1);
+  // const auto xf = data.path.x(path_size-1);
+  // const auto yf = data.path.y(path_size-1);
 
   const auto path_x = data.path.x(offseted_idx);
   const auto path_y = data.path.y(offseted_idx);
